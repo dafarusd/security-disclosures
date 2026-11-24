@@ -72,11 +72,34 @@ Not proven:
 - Attach the bearer only to hosts on a fixed allowlist in the app, and apply the same rule to the URL that arrives in the scan reply.
 - Stop sending the PIN to the sign-in service, or encrypt it to a server public key rather than to a key that ships inside the app.
 
+## What Crypto.com did with it
+
+Someone else found this first. Report #3879464, submitted **21 July 2026** — four months before
+mine. Crypto.com's own triage rated it **High (7.4)**. They closed it **Informative**: valid
+information, not a vulnerability they'd act on.
+
+Mine (#4225237, High 7.1) was closed the next day as its duplicate:
+
+> After careful review, we've confirmed that this issue was previously reported, so we'll be
+> closing it as a duplicate. The original submission covers this same finding, and we appreciate
+> the effort you invested in investigating and documenting it.
+
+![Crypto.com closing the report as a duplicate](img/h1-4225237-cryptocom-response.jpg)
+
+The sidebar carries the part that matters — the original's date, Crypto.com's own severity rating,
+and the Informative label. The other researcher's report title is redacted; it isn't public and
+isn't mine to publish.
+
+![Duplicate of #3879464, Informative, submitted July 21 2026, severity High 7.4](img/h1-4225237-duplicate-of-informative.jpg)
+
+I asked why the original was Informative, and whether they objected to my publishing. No reply.
+Report #3879464 isn't public, so there's nothing to read on their reasoning.
+
+Four months after the first report, with the vendor's own triage calling it High, it still works.
+
 ## Reproducing it
 
-Crypto.com has classed this behaviour as Informative twice — once on an earlier researcher's report
-and again by closing mine as its duplicate — and didn't answer when I asked what mitigation I was
-missing. There's no fix to embargo.
+There's no fix to embargo.
 
 ### The QR format
 
@@ -138,8 +161,10 @@ digits are the PIN. I logged lengths and character classes only, never my own di
 |---|---|
 | 2026-11-20 | Found and reproduced, against my own account and my own phone. |
 | 2026-11-21 | Reproduced again, PIN decryption confirmed, reported to Crypto.com through HackerOne. |
-| 2026-11-22 | Closed as a duplicate of an earlier report — one itself classed Informative. Asked why, since the behaviour still worked as described, and asked whether they objected to my publishing. |
+| 2026-11-22 | Closed as a duplicate of #3879464 — submitted 2026-07-21, rated High (7.4) by Crypto.com, closed Informative. Asked why, since the behaviour still worked as described, and asked whether they objected to my publishing. |
 | 2026-11-24 | Still no reply. Published in full, since the behaviour has been declared a non-issue twice and there's nothing to hold for. |
+
+Screenshots taken from my own HackerOne account on 2026-11-24.
 
 No other person's data was accessed at any point. Reported through Crypto.com's HackerOne programme
 before publication.
