@@ -6,10 +6,12 @@ authorise the prompt that follows, your PIN too.
 
 Tested on `co.mona.android` 3.245.02, Galaxy S24 Ultra (SM-S928B), against my own account only.
 
-**I didn't attempt any money-moving request, so I can't tell you whether one is reachable.**
-Withdrawal and transfer calls carry the passcode, and ask for a one-time code when 2FA is on. What
-the attack hands over is a live session token and the PIN. Whether that's enough for a withdrawal
-is untested and I'm not claiming either way.
+**The token reads the account.** Balances, holdings, home address, transfer contacts, transfer
+limits and the withdrawal address book all return 200 with it and 401 without it.
+
+**I didn't attempt any money-moving request, so I can't tell you whether one is reachable.** Every
+write is a POST and I sent none. What the attack hands over is a live session token and the PIN.
+Whether that's enough to move funds is untested and I'm not claiming either way.
 
 ## What happens
 
@@ -49,13 +51,30 @@ the real one. The user is doing the thing they were told to do.
 Proven:
 
 - One scan sends the access token to a host of the attacker's choosing, with no further tap, on an account with the NFT terms already accepted.
+- That token then reads the account from another machine. Measured 2026-11-25, each endpoint tried with and without it:
+
+| Endpoint | No token | With token |
+|---|---|---|
+| `/api/balances/show` | 401 | **200** — holdings across 9 crypto keys, 360 KB |
+| `/api/balances/total` | 401 | **200** — total balance |
+| `/api/address/show` | 401 | **200** — home address, 9 fields |
+| `/api/withdrawal_addresses` | 401 | **200** — withdrawal whitelist |
+| `/api/withdrawal_addresses/pendings` | 401 | **200** — addresses awaiting approval |
+| `/api/crypto_wallets/transfers/transacted_users` | 401 | **200** — transfer contacts |
+| `/api/transfers/limit` | 401 | **200** |
+| `/api/transaction_limit_restrictions/show` | 401 | **200** |
+| `/api/v1/crypto_fiats/crypto_withdrawals/process_details` | 401 | **200** |
+| `/api/purchases/daily_limit` | 401 | **200** |
+
+  My account is empty, so several of those return empty collections. The 401-to-200 flip is the
+  point: authentication is what changes, not the account.
 - The token works from a different machine: an authenticated endpoint returns 401 without it, 200 with it.
 - With Authorize plus PIN entry, the passcode arrives too and decrypts to a six-digit field in the position the code says the PIN occupies. I never looked at the digits.
 - Four runs across two days. The token leaving on the scan happened every time; the full chain through to a decrypted PIN landed on the fourth.
 
 Not proven:
 
-- No profile or balance read. A separate filter rejected my attempts from a laptop and I didn't try to get past it.
+- Two endpoints stay closed: `/api/user/show` and `/api/account/show` return a `SEC0001-0005` filter — but they do that with *or without* a token, so it's a client filter, not a protection.
 - No money-moving request was attempted. Whether one would succeed with the token and PIN is untested.
 - iOS wasn't tested.
 
@@ -98,7 +117,8 @@ isn't mine to publish.
 I asked why the original was Informative, and whether they objected to my publishing. No reply.
 Report #3879464 isn't public, so there's nothing to read on their reasoning.
 
-Four months after the first report, with HackerOne showing it at High, it still worked when I last tested it on 2026-11-21.
+Four months after the first report, with HackerOne showing it at High, it still worked when I
+retested it on 2026-11-25.
 
 ## Reproducing it
 
@@ -168,6 +188,7 @@ code and the shape, not something I watched.
 | 2026-11-21 | Reproduced again, PIN decryption confirmed, reported to Crypto.com through HackerOne. |
 | 2026-11-22 | Closed as a duplicate of #3879464 — submitted 2026-07-21, shown at High (7.4), closed Informative. Asked why, since the behaviour still worked as described, and asked whether they objected to my publishing. |
 | 2026-11-24 | Still no reply. Published in full, since the behaviour has been declared a non-issue twice and there's nothing to hold for. |
+| 2026-11-25 | Retested. Still works. Mapped what the token actually opens: balances, address, transfer contacts and the withdrawal address book. An earlier note here said balances weren't readable — that was wrong, based on one filtered endpoint, and is corrected above. |
 
 Screenshots taken from my own HackerOne account on 2026-11-24.
 
