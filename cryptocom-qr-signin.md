@@ -6,9 +6,10 @@ authorise the prompt that follows, your PIN too.
 
 Tested on `co.mona.android` 3.245.02, Galaxy S24 Ultra (SM-S928B), against my own account only.
 
-**This does not move money.** No transfer or withdrawal is reachable with what the attack yields,
-and withdrawals require a one-time code when 2FA is on. What it hands over is a live session token
-and a PIN.
+**I didn't attempt any money-moving request, so I can't tell you whether one is reachable.**
+Withdrawal and transfer calls carry the passcode, and ask for a one-time code when 2FA is on. What
+the attack hands over is a live session token and the PIN. Whether that's enough for a withdrawal
+is untested and I'm not claiming either way.
 
 ## What happens
 
@@ -23,7 +24,8 @@ somewhere harmless — a query parameter, for instance — passes while pointing
 From there it unravels in three steps.
 
 **1. The token leaves on the scan itself.** The app POSTs to the URL from the QR, attaching the
-user's live bearer token. No screen in between, nothing to approve. The request also carries the
+user's live bearer token. No screen in between, nothing to approve — on an account that has already
+accepted the NFT terms, which mine had. An account that hasn't gets a terms sheet first. The request also carries the
 account UUID, region, device model and session identifiers.
 
 **2. The confirmation screen is written by the attacker.** Whatever that server replies with fills
@@ -46,15 +48,15 @@ the real one. The user is doing the thing they were told to do.
 
 Proven:
 
-- One scan sends the access token to a host of the attacker's choosing, with no further tap.
+- One scan sends the access token to a host of the attacker's choosing, with no further tap, on an account with the NFT terms already accepted.
 - The token works from a different machine: an authenticated endpoint returns 401 without it, 200 with it.
-- With Authorize plus PIN entry, the PIN arrives too and decrypts to the six digits.
-- Reproduced four times across two days, same result.
+- With Authorize plus PIN entry, the passcode arrives too and decrypts to a six-digit field in the position the code says the PIN occupies. I never looked at the digits.
+- Four runs across two days. The token leaving on the scan happened every time; the full chain through to a decrypted PIN landed on the fourth.
 
 Not proven:
 
 - No profile or balance read. A separate filter rejected my attempts from a laptop and I didn't try to get past it.
-- No money-moving request was attempted, and none is reachable from this.
+- No money-moving request was attempted. Whether one would succeed with the token and PIN is untested.
 - iOS wasn't tested.
 
 ## Root causes
@@ -75,8 +77,9 @@ Not proven:
 ## What Crypto.com did with it
 
 Someone else found this first. Report #3879464, submitted **21 July 2026** — four months before
-mine. Crypto.com's own triage rated it **High (7.4)**. They closed it **Informative**: valid
-information, not a vulnerability they'd act on.
+mine. HackerOne shows it at **High (7.4)** — I can't tell from outside whether Crypto.com set that
+or the reporter did, since my own report's 7.1 is my self-assessed CVSS. They closed it
+**Informative**: valid information, not a vulnerability they'd act on.
 
 Mine (#4225237, High 7.1) was closed the next day as its duplicate:
 
@@ -86,8 +89,8 @@ Mine (#4225237, High 7.1) was closed the next day as its duplicate:
 
 ![Crypto.com closing the report as a duplicate](img/h1-4225237-cryptocom-response.jpg)
 
-The sidebar carries the part that matters — the original's date, Crypto.com's own severity rating,
-and the Informative label. The other researcher's report title is redacted; it isn't public and
+The sidebar carries the part that matters — the original's date, its severity, and the Informative
+label. The other researcher's report title is redacted; it isn't public and
 isn't mine to publish.
 
 ![Duplicate of #3879464, Informative, submitted July 21 2026, severity High 7.4](img/h1-4225237-duplicate-of-informative.jpg)
@@ -95,7 +98,7 @@ isn't mine to publish.
 I asked why the original was Informative, and whether they objected to my publishing. No reply.
 Report #3879464 isn't public, so there's nothing to read on their reasoning.
 
-Four months after the first report, with the vendor's own triage calling it High, it still works.
+Four months after the first report, with HackerOne showing it at High, it still worked when I last tested it on 2026-11-21.
 
 ## Reproducing it
 
@@ -151,9 +154,11 @@ with the SHA-256 hex of `co.mona.android.core.config`, giving 64 hex characters 
 a 32-byte AES key. Fingerprint, so you can check you derived the same one:
 `sha256(key hex)[:12] = d2170cf3c248`.
 
-AES-256-CBC with that key gives valid padding and a 39-byte plaintext:
+AES-256-CBC with that key gives valid padding and a 39-byte plaintext on that run (the trailing random field varies in length between runs, so expect roughly 39-41):
 `<6 digits>-<13-digit ms timestamp>-<random hex>`. The HMAC verifies with the same key. The six
-digits are the PIN. I logged lengths and character classes only, never my own digits.
+digits sit where the code says the PIN goes, and my PIN is six digits long. I logged lengths and
+character classes only and never looked at the value, so that identification is a reading of the
+code and the shape, not something I watched.
 
 ## Timeline
 
@@ -161,7 +166,7 @@ digits are the PIN. I logged lengths and character classes only, never my own di
 |---|---|
 | 2026-11-20 | Found and reproduced, against my own account and my own phone. |
 | 2026-11-21 | Reproduced again, PIN decryption confirmed, reported to Crypto.com through HackerOne. |
-| 2026-11-22 | Closed as a duplicate of #3879464 — submitted 2026-07-21, rated High (7.4) by Crypto.com, closed Informative. Asked why, since the behaviour still worked as described, and asked whether they objected to my publishing. |
+| 2026-11-22 | Closed as a duplicate of #3879464 — submitted 2026-07-21, shown at High (7.4), closed Informative. Asked why, since the behaviour still worked as described, and asked whether they objected to my publishing. |
 | 2026-11-24 | Still no reply. Published in full, since the behaviour has been declared a non-issue twice and there's nothing to hold for. |
 
 Screenshots taken from my own HackerOne account on 2026-11-24.

@@ -6,6 +6,6 @@ vulnerability.
 
 | Finding | Target | Status |
 |---|---|---|
-| [Crypto.com Android: crafted QR code leaks access token and PIN](cryptocom-qr-signin.md) | `co.mona.android` 3.245.02 | First reported to the vendor 2026-07-21 by another researcher and closed Informative; mine closed as its duplicate 2026-11-22; published in full 2026-11-24 |
+| [Crypto.com Android: crafted QR code leaks access token and PIN](cryptocom-qr-signin.md) | `co.mona.android` 3.245.02 | First reported 2026-07-21 by another researcher and closed Informative; mine closed as its duplicate 2026-11-22; published in full 2026-11-24 |
 
 Tested against my own accounts and my own hardware only.
