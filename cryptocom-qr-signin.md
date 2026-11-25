@@ -9,9 +9,11 @@ Tested on `co.mona.android` 3.245.02, Galaxy S24 Ultra (SM-S928B), against my ow
 **The token reads the account.** Balances, holdings, home address, transfer contacts, transfer
 limits and the withdrawal address book all return 200 with it and 401 without it.
 
-**I didn't attempt any money-moving request, so I can't tell you whether one is reachable.** Every
-write is a POST and I sent none. What the attack hands over is a live session token and the PIN.
-Whether that's enough to move funds is untested and I'm not claiming either way.
+**It does not move money, and there's a visible reason why.** A withdrawal request with that token
+comes back `403 SEC0001-0005` — the same filter that blocks `/api/user/show`. Something beyond the
+bearer token guards the money endpoints. The real app gets through it; a replayed request from
+another machine doesn't. I didn't try to imitate the app closely enough to find out what that
+check is.
 
 ## What happens
 
@@ -68,6 +70,17 @@ Proven:
 
   My account is empty, so several of those return empty collections. The 401-to-200 flip is the
   point: authentication is what changes, not the account.
+
+### What the token cannot do
+
+A withdrawal attempt — `POST /api/v1/crypto_fiats/crypto_withdrawals/create` — returns
+`403 SEC0001-0005`, the same filter that blocks `/api/user/show` and `/api/account/show`. That
+filter isn't rejecting the machine in general: the identical request program read balances, the
+home address and the withdrawal address book without complaint. It guards specific endpoints, and
+the money ones are behind it.
+
+So the bearer token is not sufficient to move funds. Whether a request crafted to resemble the
+real app more closely would satisfy that check is unknown — I stopped rather than build one.
 - The token works from a different machine: an authenticated endpoint returns 401 without it, 200 with it.
 - With Authorize plus PIN entry, the passcode arrives too and decrypts to a six-digit field in the position the code says the PIN occupies. I never looked at the digits.
 - Four runs across two days. The token leaving on the scan happened every time; the full chain through to a decrypted PIN landed on the fourth.
